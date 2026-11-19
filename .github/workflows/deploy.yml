@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build NumLab
-        run: npm run build
+      - name: Build Numlab
+        run: npm run build -- --base=/Numlab-prod/
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
