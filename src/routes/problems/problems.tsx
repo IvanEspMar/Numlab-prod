@@ -2,6 +2,7 @@ import { type TarjetaData } from '@/components/tarjeta/tarjeta'
 import grafica from '@/assets/nolineal.svg'
 import sistemas from '@/assets/sistemas.jpg'
 import TarjetaGrid from '@/components/tarjeta-grid/tarjeta-grid'
+import valores from '@/assets/valores.svg'
 
 import './problems.scss'
 
@@ -10,8 +11,8 @@ function Problemas() {
     <TarjetaGrid
       titulo="TIPOS DE PROBLEMAS Y MÉTODOS NUMÉRICOS"
       contador="01 — 03"
-      etiqueta="Introducción"
-      introduccion="Los métodos numéricos permiten abordar distintos problemas matemáticos mediante procedimientos que generan soluciones aproximadas. Su aplicación comprende la búsqueda de raíces de ecuaciones, la resolución de sistemas lineales y el cálculo de valores propios. Cada problema requiere métodos específicos que, mediante procesos algebraicos e iterativos, permiten obtener resultados con una precisión determinada."
+      etiqueta="Qué problemas resuelve NumLab"
+      informacion="NumLab reúne tres tipos de problemas. En ecuaciones no lineales se buscan raíces de una función. En sistemas lineales se buscan valores que satisfagan varias ecuaciones a la vez. En valores propios se estudian las direcciones que una matriz conserva al transformar un vector."
       tarjetas={problemas}
       columnas={3}
     />
@@ -47,7 +48,7 @@ const problemas: TarjetaData[] = [
     numero: '05',
     categoria: 'VALORES PROPIOS',
     titulo: 'Cálculo de valores propios',
-    formula: 'Av = λv',
+    imagen: valores,
     descripcion: 'Unidad 5 · Métodos de la Potencia y Potencia Inversa.',
     pie: 'VALORES Y VECTORES',
     ruta: '/eigenvalues'

@@ -1,3 +1,5 @@
+import { CeldaMatriz, EditorMatriz } from '@/components/editor-matriz/editor-matriz'
+import { parseDecimal } from '@/functions/parse-decimal'
 import { useState } from "react";
 import "./gauss-jordan.scss";
 
@@ -21,6 +23,19 @@ const MIN_SIZE = 2;
 const MAX_SIZE = 8;
 const EPSILON = 1e-10;
 const DECIMALS = 6;
+const EXAMPLE_MATRIX = [
+  [10, -1, 2, 6],
+  [-1, 11, -1, 22],
+  [2, -1, 10, -10],
+];
+
+function createExampleValues() {
+  return EXAMPLE_MATRIX.map((row) => row.map((value) => String(Math.abs(value))));
+}
+
+function createExampleSigns() {
+  return EXAMPLE_MATRIX.map((row) => row.map((value) => value < 0));
+}
 
 function createMatrix(size: number): string[][] {
   return Array.from({ length: size }, () => Array(size + 1).fill(""));
@@ -149,9 +164,9 @@ function gaussJordan(source: Matrix): Solution {
 }
 
 function GaussJordan() {
-  const [size, setSize] = useState(3);
-  const [matrix, setMatrix] = useState<string[][]>(() => createMatrix(3));
-  const [signs, setSigns] = useState<boolean[][]>(() => createSigns(3));
+  const [size, setSize] = useState(EXAMPLE_MATRIX.length);
+  const [matrix, setMatrix] = useState(createExampleValues);
+  const [signs, setSigns] = useState(createExampleSigns);
   const [result, setResult] = useState<Solution | null>(null);
   const [activeStep, setActiveStep] = useState(0);
 
@@ -193,7 +208,7 @@ function GaussJordan() {
     const numericMatrix = matrix.map((row, i) =>
       row.map((value, j) => {
         const number =
-          value.trim() === "" ? 0 : Number(value.replace(",", "."));
+          value.trim() === "" ? 0 : parseDecimal(value);
 
         return signs[i][j] ? -number : number;
       }),
@@ -205,6 +220,14 @@ function GaussJordan() {
     setActiveStep(0);
   }
 
+  function loadExample() {
+    setSize(EXAMPLE_MATRIX.length);
+    setMatrix(createExampleValues());
+    setSigns(createExampleSigns());
+    setResult(null);
+    setActiveStep(0);
+  }
+
   function reset() {
     setMatrix(createMatrix(size));
     setSigns(createSigns(size));
@@ -213,6 +236,9 @@ function GaussJordan() {
   }
 
   const currentStep = result?.steps[activeStep];
+  const invalidEntry = matrix.some((row) =>
+    row.some((value) => value.trim() !== "" && !Number.isFinite(parseDecimal(value))),
+  );
 
   return (
     <main className="gauss-jordan">
@@ -264,48 +290,31 @@ function GaussJordan() {
         </div>
 
         <p className="gauss-jordan__hint">
-          Introduce los coeficientes y términos independientes. Los campos
-          vacíos se consideran iguales a cero.
+          Alterna el signo con ±. Las celdas vacías valen 0.
         </p>
+        {invalidEntry && <p role="status">Completa el número en la celda antes de resolver.</p>}
 
-        <div className="gauss-jordan__matrix-wrapper">
-          <div className="gauss-jordan__matrix">
-            {matrix.map((row, i) => (
-              <div className="gauss-jordan__row" key={i}>
-                <span className="gauss-jordan__row-label">F{i + 1}</span>
-
-                {row.map((value, j) => (
-                  <div
-                    className={`gauss-jordan__cell ${
-                      j === size ? "gauss-jordan__cell--result" : ""
-                    }`}
-                    key={j}
-                  >
-                    <button
-                      type="button"
-                      className={`gauss-jordan__sign ${
-                        signs[i][j] ? "is-negative" : ""
-                      }`}
-                      onClick={() => toggleSign(i, j)}
-                      aria-label={`Cambiar signo de fila ${i + 1}, columna ${j + 1}`}
-                    >
-                      {signs[i][j] ? "−" : "+"}
-                    </button>
-
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={value}
-                      onChange={(event) => updateCell(i, j, event.target.value)}
-                      aria-label={`Fila ${i + 1}, columna ${j + 1}`}
-                      placeholder="0"
-                    />
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
+        <EditorMatriz
+          size={size}
+          renderCell={(row, column) => (
+            <CeldaMatriz
+              label={`Coeficiente: fila ${row + 1}, columna ${column + 1}`}
+              value={matrix[row][column]}
+              negative={signs[row][column]}
+              onValueChange={(value) => updateCell(row, column, value)}
+              onToggleSign={() => toggleSign(row, column)}
+            />
+          )}
+          renderVector={(row) => (
+            <CeldaMatriz
+              label={`Término independiente ${row + 1}`}
+              value={matrix[row][size]}
+              negative={signs[row][size]}
+              onValueChange={(value) => updateCell(row, size, value)}
+              onToggleSign={() => toggleSign(row, size)}
+            />
+          )}
+        />
 
         <div className="gauss-jordan__matrix-footer">
           <span>
@@ -320,11 +329,15 @@ function GaussJordan() {
         </div>
 
         <div className="gauss-jordan__actions">
+          <button type="button" className="gauss-jordan__reset" onClick={loadExample}>
+            Cargar ejemplo
+          </button>
+
           <button type="button" className="gauss-jordan__reset" onClick={reset}>
             <span>↺</span> Limpiar
           </button>
 
-          <button type="button" className="gauss-jordan__solve" onClick={solve}>
+          <button type="button" className="gauss-jordan__solve" onClick={solve} disabled={invalidEntry}>
             Resolver sistema <span>→</span>
           </button>
         </div>

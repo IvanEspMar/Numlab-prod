@@ -1,0 +1,105 @@
+@use '../../styles/variables' as *;
+
+.editor-matriz {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 6px 4px 12px;
+
+  &:focus-visible { outline: 2px solid #166c9b; }
+
+  &__layout {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(14px, 3vw, 28px);
+    width: max-content;
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 8px;
+    color: $color-muted;
+    font: 600 11px $font-mono;
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+
+  &__brackets {
+    display: grid;
+    gap: 3px 4px;
+    padding: 5px 8px;
+    background: linear-gradient($color-muted, $color-muted) left top / 6px 1px no-repeat,
+                linear-gradient($color-muted, $color-muted) right top / 6px 1px no-repeat,
+                linear-gradient($color-muted, $color-muted) left bottom / 6px 1px no-repeat,
+                linear-gradient($color-muted, $color-muted) right bottom / 6px 1px no-repeat;
+    border-inline: 1px solid $color-muted;
+  }
+
+  &__row { display: contents; }
+
+  &__cell {
+    --cell-fill: #f7f8f9;
+    display: flex;
+    align-items: stretch;
+    min-height: 44px;
+    border-radius: 4px;
+    background: var(--cell-fill);
+
+    &[data-negative='true'] { --cell-fill: #faf7f7; }
+
+    &:hover { background: color-mix(in srgb, $color-blue 7%, var(--cell-fill)); }
+
+    &:focus-within {
+      background: color-mix(in srgb, $color-blue 9%, var(--cell-fill));
+      outline: 1px solid $color-blue;
+      outline-offset: -1px;
+    }
+
+    input {
+      box-sizing: border-box;
+      width: calc(12ch + 12px);
+      flex: 1 0 auto;
+      min-width: 0;
+      padding: 6px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: $color-text;
+      font: 500 16px $font-mono;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+
+      &::placeholder { color: #737d85; }
+      &::selection { background: color-mix(in srgb, $color-blue 35%, white); }
+
+      &:focus { outline: none; }
+    }
+
+    button {
+      --sign-size: 26px;
+      display: grid;
+      place-items: center;
+      box-sizing: border-box;
+      width: var(--sign-size);
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: $color-muted;
+      font: 500 14px / 1 $font-mono;
+      cursor: pointer;
+
+      &:hover { background: color-mix(in srgb, $color-blue 15%, transparent); color: #166c9b; }
+      &:active { background: color-mix(in srgb, $color-blue 22%, transparent); }
+      &:focus-visible { outline: 2px solid #166c9b; outline-offset: -3px; }
+    }
+  }
+}
+
+@media (max-width: 750px) {
+  .editor-matriz__cell input { width: calc(14ch + 12px); }
+}
+
+@media (pointer: coarse) {
+  .editor-matriz__cell button { --sign-size: 44px; }
+}

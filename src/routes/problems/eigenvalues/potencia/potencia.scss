@@ -124,104 +124,6 @@
     }
   }
 
-  &__matrix-area {
-    margin-top: 28px;
-  }
-
-  &__matrix-labels {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 100px;
-    gap: 25px;
-    margin-bottom: 12px;
-
-    span {
-      color: #858c93;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  &__matrix-wrapper {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 100px;
-    gap: 25px;
-    align-items: start;
-    overflow-x: auto;
-    padding: 3px 0;
-  }
-
-  &__matrix {
-    display: grid;
-    gap: 9px;
-    min-width: 300px;
-  }
-
-  &__vector {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 9px;
-  }
-
-  &__cell {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 0;
-
-    input {
-      width: 100%;
-      min-width: 0;
-      height: 38px;
-      padding: 0 5px;
-      border: 1px solid #dfe4e8;
-      border-radius: 3px;
-      outline: none;
-      background: #fff;
-      color: #202326;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 13px;
-      text-align: center;
-
-      &::placeholder {
-        color: #c5cbd0;
-      }
-
-      &:focus {
-        border-color: #41b0ea;
-      }
-    }
-  }
-
-  &__sign {
-    flex: 0 0 27px;
-    width: 27px;
-    height: 27px;
-    padding: 0;
-    border: 1px solid #dfe4e8;
-    border-radius: 3px;
-    background: #f7f9fa;
-    color: #258b62;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.15s;
-
-    &:hover {
-      border-color: #41b0ea;
-      background: #eef8fd;
-    }
-
-    &.is-negative {
-      color: #e64b45;
-
-      &:hover {
-        border-color: #e64b45;
-        background: #fff5f4;
-      }
-    }
-  }
-
   &__matrix-note {
     margin-top: 18px;
     color: #858c93;
@@ -334,75 +236,6 @@
     line-height: 1.6;
   }
 
-  &__status {
-    padding: 7px 10px;
-    border: 1px solid #e1e6e9;
-    color: #777f87;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 10px;
-
-    &.is-success {
-      border-color: #cde9dc;
-      background: #f2faf6;
-      color: #258b62;
-    }
-
-    &.is-warning {
-      border-color: #f0dfc3;
-      background: #fffaf1;
-      color: #a7792c;
-    }
-  }
-
-  &__solution {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-    gap: 12px;
-    margin-top: 26px;
-  }
-
-  &__solution-item {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-    padding: 17px;
-    border: 1px solid #e5e9ec;
-    background: #fcfdfe;
-
-    span {
-      color: #858c93;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 11px;
-    }
-
-    strong {
-      overflow-wrap: anywhere;
-      color: #202326;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 17px;
-      font-weight: 500;
-    }
-
-    &:first-child {
-      border-top: 2px solid #41b0ea;
-    }
-  }
-
-  &__result-info {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 20px 0 0;
-    color: #858c93;
-    font-size: 11px;
-
-    span {
-      font-family: "IBM Plex Mono", monospace;
-    }
-  }
-
   &__table-wrapper {
     width: 100%;
     margin-top: 25px;
@@ -453,39 +286,8 @@
       }
     }
 
-    td:nth-last-child(3) {
-      color: #258fc7;
-      font-weight: 600;
-    }
   }
 
-  &__verification-description {
-    margin: 22px 0 15px;
-    color: #737d85;
-    font-size: 13px;
-    line-height: 1.7;
-  }
-
-  &__verification {
-    padding: 20px;
-    border-left: 3px solid #41b0ea;
-    background: #f6fbfe;
-
-    strong {
-      color: #258fc7;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 14px;
-      font-weight: 500;
-      overflow-wrap: anywhere;
-    }
-
-    p {
-      margin: 12px 0 0;
-      color: #737d85;
-      font-size: 12px;
-      line-height: 1.7;
-    }
-  }
 }
 
 @media (max-width: 700px) {
@@ -516,16 +318,6 @@
       }
     }
 
-    &__matrix-labels,
-    &__matrix-wrapper {
-      grid-template-columns: minmax(0, 1fr) 85px;
-      gap: 12px;
-    }
-
-    &__matrix {
-      min-width: 280px;
-    }
-
     &__parameters {
       grid-template-columns: 1fr;
       gap: 18px;
@@ -544,17 +336,6 @@
       }
     }
 
-    &__status {
-      margin-left: 42px;
-    }
-
-    &__solution {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    &__result-info {
-      flex-direction: column;
-    }
   }
 }
 
@@ -568,14 +349,6 @@
 
     &__tag {
       font-size: 9px;
-    }
-
-    &__solution-item {
-      padding: 13px;
-
-      strong {
-        font-size: 14px;
-      }
     }
 
     &__actions {

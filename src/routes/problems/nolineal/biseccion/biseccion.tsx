@@ -1,8 +1,10 @@
+import { parseDecimal } from "@/functions/parse-decimal";
+import { CalculadoraNoLineal, EncabezadosIteraciones, EntradaDecimal, ResultadoNoLineal } from "../calculadora-nolineal";
 
-import { compile } from "mathjs";
-import { useState } from "react";
-import { Link } from "react-router";
-import "./biseccion.scss";
+import { parse, type EvalFunction } from "mathjs";
+import { MathJax } from "better-react-mathjax";
+import { useMemo, useState } from "react";
+import { createInputGraph, createSolutionGraph, evaluateGraphValue, isNumericExpression, type GraphData } from "../grafica-modelo";
 
 interface RowBisecType {
   a: number;
@@ -14,80 +16,121 @@ interface RowBisecType {
   aChanged: boolean;
 }
 
+function midpoint(a: number, b: number): number {
+  const width = b - a;
+  return Number.isFinite(width) ? a + width / 2 : a / 2 + b / 2;
+}
+
+function bracketApproachesZero(evaluate: GraphData["evaluate"], row: RowBisecType, tolerance: number): boolean {
+  let { a, b, fa, fb } = row;
+  const initialMagnitude = Math.max(Math.abs(fa), Math.abs(fb));
+  for (let refinement = 0; refinement < 6; refinement++) {
+    const c = midpoint(a, b);
+    if (c === a || c === b) break;
+    const fc = evaluate(c);
+    if (fc === null) return false;
+    if (Math.abs(fc) < tolerance) return true;
+    if ((fa < 0) !== (fc < 0)) {
+      b = c;
+      fb = fc;
+    } else {
+      a = c;
+      fa = fc;
+    }
+  }
+  return Math.max(Math.abs(fa), Math.abs(fb)) < initialMagnitude * 0.9;
+}
+
 function Biseccion() {
 
   const [iterations, setIterations] = useState<RowBisecType[]>([]);
   const [equationText, setEquationText] = useState("2x^2 - 7");
-  const [equationIsValid, setEquationIsValid] = useState(false);
+  const [validatedFunction, setValidatedFunction] = useState<{ value: EvalFunction; latex: string } | null>(null);
 
-  const [a, setA] = useState(0);
-  const [b, setB] = useState(0);
-  const [sol, setSol] = useState<number | null>(null);
+  const [aInput, setAInput] = useState("0");
+  const [bInput, setBInput] = useState("0");
+
+  const [sol, setSol] = useState<{ x: number; fx: number } | null>(null);
+  const [solutionGraph, setSolutionGraph] = useState<GraphData | null>(null);
+  const [calculationMessage, setCalculationMessage] = useState("");
 
   const tolerance = 0.00001;
   const decimals = 6;
   const maxIterations = 50;
 
-  const intervalIsValid = a < b;
+  const a = parseDecimal(aInput);
+  const b = parseDecimal(bInput);
+  const inputGraph = useMemo(() => validatedFunction && createInputGraph(validatedFunction.value, {
+    method: "biseccion", a, b,
+  }), [validatedFunction, a, b]);
 
-  function equation(x: number): number {
-    return compile(equationText).evaluate({ x });
+  const intervalIsValid =
+    Number.isFinite(a) &&
+    Number.isFinite(b) &&
+    a < b;
+
+  function resetResults() {
+    setIterations([]);
+    setSol(null);
+    setCalculationMessage("");
   }
 
   function validateEquation() {
-    try {
-      const compiledEquation = compile(equationText);
-      const test = compiledEquation.evaluate({ x: 1 });
+    resetResults();
 
-      if (typeof test !== "number" || !Number.isFinite(test)) {
+    try {
+      const parsedEquation = parse(equationText);
+      const compiledEquation = parsedEquation.compile();
+      if (!isNumericExpression(compiledEquation, [a, b])) {
         throw new Error("La función no devuelve un número válido");
       }
 
-      setEquationIsValid(true);
-      setIterations([]);
-      setSol(null);
-    } catch (error) {
-      setEquationIsValid(false);
-      setIterations([]);
-      setSol(null);
+      setValidatedFunction({ value: compiledEquation, latex: parsedEquation.toTex() });
+
+    } catch {
+      setValidatedFunction(null);
+      setCalculationMessage("La función introducida no es válida.");
     }
   }
 
-  const intervalHasSignChange = (() => {
-    try {
-      if (!equationIsValid || !intervalIsValid) return false;
+  const fa = validatedFunction ? evaluateGraphValue(validatedFunction.value, a) : null;
+  const fb = validatedFunction ? evaluateGraphValue(validatedFunction.value, b) : null;
 
-      const fa = equation(a);
-      const fb = equation(b);
-
-      return Number.isFinite(fa) &&
-        Number.isFinite(fb) &&
-        fa * fb < 0;
-    } catch {
-      return false;
-    }
-  })();
+  const intervalHasSignChange =
+    intervalIsValid &&
+    fa !== null &&
+    fb !== null &&
+    fa !== 0 && fb !== 0 && (fa < 0) !== (fb < 0);
 
   function computeIterations() {
-    if (!intervalHasSignChange) return;
+    if (!intervalHasSignChange || !inputGraph) return;
+
+    resetResults();
+    setSolutionGraph(null);
 
     let currentA = a;
     let currentB = b;
 
-    let currentC = (currentA + currentB) / 2;
-
-    const interations: RowBisecType[] = [];
+    const newIterations: RowBisecType[] = [];
 
     for (let i = 0; i < maxIterations; i++) {
-      currentC = (currentA + currentB) / 2;
 
-      const fa = equation(currentA);
-      const fb = equation(currentB);
-      const fc = equation(currentC);
+      const currentC = midpoint(currentA, currentB);
 
-      const acHasSignChange = fa * fc < 0;
+      const fa = inputGraph.evaluate(currentA);
+      const fb = inputGraph.evaluate(currentB);
+      const fc = inputGraph.evaluate(currentC);
 
-      interations.push({
+      if (fa === null || fb === null || fc === null) {
+        setCalculationMessage(
+          "Se obtuvo un resultado no válido durante el cálculo."
+        );
+        break;
+      }
+
+      const acHasSignChange = (fa < 0) !== (fc < 0);
+
+      const row = {
         a: currentA,
         b: currentB,
         c: currentC,
@@ -95,12 +138,17 @@ function Biseccion() {
         fb,
         fc,
         aChanged: !acHasSignChange
-      });
+      };
+      newIterations.push(row);
 
-      if (
-        Math.abs(fc) < tolerance ||
-        Math.abs(currentB - currentA) / 2 < tolerance
-      ) {
+      const residualConverged = Math.abs(fc) < tolerance;
+      if (residualConverged || Math.abs(currentB - currentA) / 2 < tolerance) {
+        if (residualConverged || bracketApproachesZero(inputGraph.evaluate, row, tolerance)) {
+          setSol({ x: currentC, fx: fc });
+          setSolutionGraph(createSolutionGraph(inputGraph, currentC));
+        } else {
+          setCalculationMessage("El intervalo se redujo sin aproximarse a una raíz. Revisa si la función es continua en el intervalo.");
+        }
         break;
       }
 
@@ -109,79 +157,91 @@ function Biseccion() {
       } else {
         currentA = currentC;
       }
+
+      if (i === maxIterations - 1) {
+        setCalculationMessage(
+          "Se alcanzó el máximo de iteraciones."
+        );
+      }
     }
 
-    setSol(currentC);
-    setIterations(interations);
+    setIterations(newIterations);
   }
 
   return (
-    <section className="bisection">
-
-      <Link className="bisection__back-button" to="/nolineal/biseccion">
-        ← Volver a la introducción
-      </Link>
-
-      <h1>MÉTODO DE BISECCIÓN</h1>
-
-      <div className="bisection__equation-input">
-        <label>Ingresa una ecuación válida</label>
-
-        <div>
-          <input
-            onChange={(e) => {
-              setEquationText(e.target.value);
-              setEquationIsValid(false);
-              setIterations([]);
-              setSol(null);
-            }}
-            value={equationText}
-            type="text"
-            placeholder="x^2 + 5x"
-          />
-
-          <button onClick={validateEquation}>
-            Validar función
-          </button>
-        </div>
-      </div>
-
-      {equationIsValid && (
+    <CalculadoraNoLineal
+      title="MÉTODO DE BISECCIÓN"
+      introductionPath="/nolineal/biseccion"
+      equationText={equationText}
+      equationLatex={validatedFunction?.latex ?? null}
+      validationMessage={calculationMessage}
+      onEquationChange={(value) => {
+        setEquationText(value);
+        setValidatedFunction(null);
+        resetResults();
+      }}
+      onValidate={validateEquation}
+      inputGraph={inputGraph}
+      solutionGraph={solutionGraph}
+      graphHint="Ingresa un intervalo válido con a menor que b."
+      parameters={(
         <>
-          <div className="bisection__interval-inputs">
+          <div className="calculadora-nolineal__interval-inputs">
+
             <h3>Intervalo inicial</h3>
 
-            <label htmlFor="interval-a">a:</label>
-            <input
+            <label htmlFor="interval-a">
+              <MathJax inline>
+                {String.raw`\(a:\)`}
+              </MathJax>
+            </label>
+
+            <EntradaDecimal
               id="interval-a"
-              value={a}
-              onChange={(e) => {
-                setA(Number(e.target.value));
-                setIterations([]);
-                setSol(null);
+              value={aInput}
+              onValueChange={(value) => {
+                setAInput(value);
+                resetResults();
               }}
-              type="number"
+              placeholder="0"
             />
 
-            <label htmlFor="interval-b">b:</label>
-            <input
+            <label htmlFor="interval-b">
+              <MathJax inline>
+                {String.raw`\(b:\)`}
+              </MathJax>
+            </label>
+
+            <EntradaDecimal
               id="interval-b"
-              value={b}
-              onChange={(e) => {
-                setB(Number(e.target.value));
-                setIterations([]);
-                setSol(null);
+              value={bInput}
+              onValueChange={(value) => {
+                setBInput(value);
+                resetResults();
               }}
-              type="number"
+              placeholder="0"
             />
+
           </div>
 
-          <div className="bisection__interval-values">
-            <span>f(a) = {equation(a)}</span>
-            <span>f(b) = {equation(b)}</span>
+          <div className="calculadora-nolineal__interval-values">
+
+            <MathJax inline dynamic>
+              {String.raw`\(f(a)=${
+                fa ?? "\\text{No definido}"
+              }\)`}
+            </MathJax>
+
+            <MathJax inline dynamic>
+              {String.raw`\(f(b)=${
+                fb ?? "\\text{No definido}"
+              }\)`}
+            </MathJax>
+
           </div>
 
-          <div className="bisection__calculation-controls">
+          <div className="calculadora-nolineal__calculation-controls">
+
             <button
               disabled={!intervalHasSignChange}
               onClick={computeIterations}
@@ -189,39 +249,60 @@ function Biseccion() {
               Calcular
             </button>
 
-            <span>
-              {!intervalIsValid &&
-                "Intervalo inválido: a debe ser menor que b"}
-            </span>
+            {!intervalIsValid && (
+              <span>
+                Intervalo inválido: se requiere{" "}
+                <MathJax inline>
+                  {String.raw`\(a<b\)`}
+                </MathJax>
+              </span>
+            )}
 
-            <span>
-              {intervalIsValid && !intervalHasSignChange &&
-                "f(a) y f(b) deben tener signos contrarios"}
-            </span>
+            {intervalIsValid &&
+              (fa === null || fb === null) && (
+                <span>
+                  La función no está definida en los extremos.
+                </span>
+              )}
+
+            {intervalIsValid &&
+              fa !== null &&
+              fb !== null &&
+              !intervalHasSignChange && (
+                <span>
+                  Se requiere que{" "}
+                  <MathJax inline>
+                    {String.raw`\(f(a)f(b)<0\)`}
+                  </MathJax>
+                </span>
+              )}
+
+            {calculationMessage && (
+              <span role="status">{calculationMessage}</span>
+            )}
+
           </div>
+        </>
+      )}
+    >
+      {sol !== null && (
+        <ResultadoNoLineal
+          x={sol.x.toFixed(decimals)}
+          fx={sol.fx.toFixed(decimals)}
+        />
+      )}
 
-          {sol !== null && (
-            <>
-              <div className="bisection__result">
-                Resultado: {sol.toFixed(5)} <br />
-                Comprobación: f({sol.toFixed(5)}) = {equation(sol).toFixed(6)}
-              </div>
+      {iterations.length > 0 && (
+        <section className="calculadora-nolineal__iterations">
+          <h2>Iteraciones</h2>
+          <div className="calculadora-nolineal__table-scroll" tabIndex={0} role="region" aria-label="Tabla de iteraciones">
+            <table className="calculadora-nolineal__iterations-table">
 
-              <table className="bisection__iterations-table">
-                <thead>
-                  <tr>
-                    <th>n</th>
-                    <th>a</th>
-                    <th>c</th>
-                    <th>b</th>
-                    <th>f(a)</th>
-                    <th>f(c)</th>
-                    <th>f(b)</th>
-                  </tr>
-                </thead>
+              <EncabezadosIteraciones columns={["n", "a", "c", "b", "f(a)", "f(c)", "f(b)"]} />
 
-                <tbody>
-                  {iterations.map(({ a, b, c, fa, fb, fc }, i) => (
+              <tbody>
+                {iterations.map(
+                  ({ a, b, c, fa, fb, fc }, i) => (
                     <tr key={i}>
                       <td>{i + 1}</td>
                       <td>{Number(a.toFixed(decimals))}</td>
@@ -231,15 +312,15 @@ function Biseccion() {
                       <td>{Number(fc.toFixed(decimals))}</td>
                       <td>{Number(fb.toFixed(decimals))}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </>
-      )}
+                  )
+                )}
+              </tbody>
 
-    </section>
+            </table>
+          </div>
+        </section>
+      )}
+    </CalculadoraNoLineal>
   );
 }
 
