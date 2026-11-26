@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { MathJax } from 'better-react-mathjax'
-import { Link } from 'react-router'
+import { EncabezadoCalculadora } from "@/components/encabezado-calculadora/encabezado-calculadora";
 import './panel-factorizacion.scss'
 
 interface PanelFactorizacionProps {
@@ -24,10 +24,7 @@ export function PanelFactorizacion({
 }: PanelFactorizacionProps) {
   return (
     <section className="factorizacion">
-      <header className="factorizacion__encabezado">
-        <h1>Método de {metodo}<span className="punto">.</span></h1>
-        <Link to={`/lineal/${metodo.toLowerCase()}`}>Más detalles <span aria-hidden="true">→</span></Link>
-      </header>
+      <EncabezadoCalculadora titulo={`Método de ${metodo}`} introduccion={`/lineal/${metodo.toLowerCase()}`} />
 
       <section className="factorizacion__panel">
         <div className="factorizacion__controles">
@@ -58,13 +55,23 @@ export interface ResultadoLU {
   U: number[][]
   y: number[]
   x: number[]
+  verificacion?: {
+    intercambios: [number, number][]
+    bPermutado: number[]
+    errorLU: number
+    errorSolucion: number
+  }
 }
 
 function redondear(valor: number) {
-  return Number(valor.toFixed(6))
+  const redondeado = Number(valor.toFixed(6))
+  return redondeado === 0 && valor !== 0 ? valor.toExponential(5) : redondeado
 }
 
-export function ResultadoFactorizacion({ L, U, y, x }: ResultadoLU) {
+export function ResultadoFactorizacion({ L, U, y, x, verificacion }: ResultadoLU) {
+  const huboIntercambios = Boolean(verificacion?.intercambios.length)
+  const ladoDerecho = huboIntercambios ? 'Pb' : 'b'
+  const matrizComparada = huboIntercambios ? 'PA' : 'A'
   return (
     <>
       <section className="factorizacion__solucion" aria-label="Solución del sistema">
@@ -94,7 +101,7 @@ export function ResultadoFactorizacion({ L, U, y, x }: ResultadoLU) {
           </div>
         ))}
         <div>
-          <h3>Vector intermedio <MathJax inline>{String.raw`\(y\) en \(Ly=b\)`}</MathJax></h3>
+          <h3>Vector intermedio <MathJax inline>{String.raw`\(y\) en \(Ly=${ladoDerecho}\)`}</MathJax></h3>
           <table aria-label="Vector intermedio y">
             <tbody>
               {y.map((valor, indice) => (
@@ -106,6 +113,24 @@ export function ResultadoFactorizacion({ L, U, y, x }: ResultadoLU) {
             </tbody>
           </table>
         </div>
+        {verificacion && (
+          <div>
+            <h3>Comprobaciones</h3>
+            {huboIntercambios && (
+              <>
+                <p>Intercambios de filas en orden de aplicación</p>
+                <ol>
+                  {verificacion.intercambios.map(([origen, destino]) => (
+                    <li key={origen}>Fila {origen} ↔ fila {destino}</li>
+                  ))}
+                </ol>
+                <p>Vector <MathJax inline>{String.raw`\(Pb\)`}</MathJax> = [{verificacion.bPermutado.join(', ')}]</p>
+              </>
+            )}
+            <p><MathJax inline>{String.raw`\(LU\approx ${matrizComparada}\)`}</MathJax> con residuo máximo absoluto {verificacion.errorLU.toExponential(5)}.</p>
+            <p><MathJax inline>{String.raw`\(Ax\approx b\)`}</MathJax> con residuo máximo absoluto {verificacion.errorSolucion.toExponential(5)}.</p>
+          </div>
+        )}
       </div>
     </>
   )
