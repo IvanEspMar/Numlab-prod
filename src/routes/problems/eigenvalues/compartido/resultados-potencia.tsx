@@ -158,12 +158,14 @@ export function ResultadosPotencia({ result, inversa }: { result: EigenResult; i
   const { iterations, status, verification } = result;
   const last = iterations.at(-1);
   const pair = iterations[verification?.index ?? -1];
-  const established = status === "converged" || status === "zero-eigenpair";
+  const metodo = inversa ? "Potencia inversa" : "Potencia directa";
+  const magnitud = inversa ? "menor" : "mayor";
 
   return (
     <div className="resultado-propio">
-      <section className="potencia__section">
-        <h2>{established ? "Par propio aproximado" : pair ? "Última aproximación no convergente" : "Resultado del cálculo"}</h2>
+      <section className="potencia__section resultado-propio__resumen">
+        <h2>Resultado de {metodo.toLowerCase()}</h2>
+        <p>{metodo} busca el valor propio de <strong>{magnitud} magnitud</strong> ({inversa ? "el más cercano a cero" : "el más alejado de cero"}).</p>
         <p role={status === "invalid" ? "alert" : "status"}><strong>{states[status]}.</strong> {result.message}</p>
         {pair && (
           <div className="resultado-propio__par">
@@ -175,7 +177,7 @@ export function ResultadosPotencia({ result, inversa }: { result: EigenResult; i
           <dl className="resultado-propio__metricas">
             <div><dt>Iteraciones realizadas</dt><dd>{last.index}</dd></div>
             {pair && <div><dt>Iteración del par</dt><dd>{pair.index}</dd></div>}
-            <div><dt><MathLabel tex={String.raw`|\lambda|`} /></dt><dd>{format(pair?.lambda == null ? null : Math.abs(pair.lambda))}</dd></div>
+            <div><dt><MathLabel tex={String.raw`|\lambda|`} /></dt><dd>{format(pair && pair.lambda !== null ? Math.abs(pair.lambda) : null)}</dd></div>
             <div><dt>Error absoluto</dt><dd>{format(pair?.error ?? null)}</dd></div>
             <div><dt>Residuo</dt><dd>{format(pair?.residual ?? null)}</dd></div>
             <div><dt>Norma infinito del vector</dt><dd>{pair ? Math.max(...pair.vector.map(Math.abs)) : "—"}</dd></div>
@@ -190,7 +192,7 @@ export function ResultadosPotencia({ result, inversa }: { result: EigenResult; i
               <div><MathLabel tex="Av" /> <Vector values={verification.av} label="Producto Av" /></div>
               <div><MathLabel tex={String.raw`\lambda v`} /> <Vector values={verification.lambdaV} label="Producto lambda v" /></div>
             </div>
-            <p>Un residuo pequeño verifica un par propio aproximado. El espectro y el vector inicial determinan si se alcanza el valor propio de la magnitud buscada.</p>
+            <p>Un residuo pequeño indica que el valor y el vector calculados forman un par propio aproximado. Que se alcance el valor propio de {magnitud} magnitud depende del espectro de la matriz y del vector inicial.</p>
           </div>
         )}
       </section>
@@ -244,7 +246,7 @@ function ProcedimientoPotencia({ iterations, initial, inversa }: {
   const row = iterations[Math.min(index ?? iterations.length - 1, iterations.length - 1)];
   const previous = iterations[row.index - 1];
   const pivot = row.pivot === null ? null : row.pivot + 1;
-  const previousPivot = previous?.pivot == null ? null : previous.pivot + 1;
+  const previousPivot = previous && previous.pivot !== null ? previous.pivot + 1 : null;
 
   return (
     <section className="potencia__section resultado-propio__procedimiento">

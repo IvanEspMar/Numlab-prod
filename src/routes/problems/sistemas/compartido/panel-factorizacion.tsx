@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { MathJax } from 'better-react-mathjax'
-import { EncabezadoCalculadora } from "@/components/encabezado-calculadora/encabezado-calculadora";
+import { EncabezadoCalculadora } from '@/components/encabezado-calculadora/encabezado-calculadora'
 import './panel-factorizacion.scss'
 
 interface PanelFactorizacionProps {
@@ -63,7 +63,7 @@ export interface ResultadoLU {
   }
 }
 
-function redondear(valor: number) {
+function redondear(valor: number): string | number {
   const redondeado = Number(valor.toFixed(6))
   return redondeado === 0 && valor !== 0 ? valor.toExponential(5) : redondeado
 }
@@ -88,7 +88,7 @@ export function ResultadoFactorizacion({ L, U, y, x, verificacion }: ResultadoLU
 
       <h2>Factorización y sustitución</h2>
       <div className="factorizacion__resultados">
-        {[{ nombre: 'L', matriz: L }, { nombre: 'U', matriz: U }].map(({ nombre, matriz }) => (
+        {([['L', L], ['U', U]] as const).map(([nombre, matriz]) => (
           <div key={nombre}>
             <h3>Matriz <MathJax inline>{String.raw`\(${nombre}\)`}</MathJax></h3>
             <table aria-label={`Matriz ${nombre}`}>
@@ -120,8 +120,8 @@ export function ResultadoFactorizacion({ L, U, y, x, verificacion }: ResultadoLU
               <>
                 <p>Intercambios de filas en orden de aplicación</p>
                 <ol>
-                  {verificacion.intercambios.map(([origen, destino]) => (
-                    <li key={origen}>Fila {origen} ↔ fila {destino}</li>
+                  {verificacion.intercambios.map(([origen, destino], i) => (
+                    <li key={i}>Fila {origen} ↔ fila {destino}</li>
                   ))}
                 </ol>
                 <p>Vector <MathJax inline>{String.raw`\(Pb\)`}</MathJax> = [{verificacion.bPermutado.join(', ')}]</p>

@@ -1,5 +1,6 @@
+@use '../../../../styles/variables' as *;
 @use '../../../../styles/controles' as ui;
-.jacobi {
+.iterativo {
   width: 100%;
   max-width: 1180px;
   margin: 45px auto 80px;
@@ -142,102 +143,16 @@
     font-size: 12px;
   }
 
-  &__results {
-    min-width: 0;
-    padding-top: 25px;
-  }
-
-  &__status {
-    font-size: 11px;
-
-    &.is-success {
-      color: #258b62;
-    }
-
-    &.is-warning {
-      color: #b8792b;
-    }
-  }
-
   &__solution {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px;
-    margin: 25px 0 15px;
-  }
-
-  &__solution-item {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-    padding: 15px;
-    border: 1px solid #e5e8eb;
-    border-radius: 3px;
-
-    span {
-      color: #858c93;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 12px;
-    }
-
-    strong {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 19px;
-      font-weight: 500;
-      overflow-wrap: anywhere;
-    }
-  }
-
-  &__result-info {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    margin: 15px 0;
-    color: #858c93;
-    font-size: 11px;
-  }
-
-  &__table-wrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 11px;
-    white-space: nowrap;
-
-    th,
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid #e5e8eb;
-      text-align: right;
-    }
-
-    th {
-      background: #f7f9fa;
-      color: #777f87;
-      font-weight: 500;
-    }
-
-    th:first-child,
-    td:first-child {
-      text-align: left;
-    }
-
-    tbody tr:hover {
-      background: #f8fbfd;
-    }
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-family: $font-mono;
   }
 }
 
 @media (max-width: 700px) {
-  .jacobi {
+  .iterativo {
     margin: 30px auto 60px;
     padding: 0 16px;
 
@@ -277,19 +192,11 @@
       }
     }
 
-    &__result-info {
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    &__solution {
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    }
   }
 }
 
 @media (max-width: 380px) {
-  .jacobi {
+  .iterativo {
     padding: 0 12px;
 
     &__section-header {

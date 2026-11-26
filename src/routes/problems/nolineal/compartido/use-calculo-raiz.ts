@@ -1,30 +1,48 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { prepararFuncion } from "../calculo/funcion-real";
 import type { ResultadoRaiz } from "../calculo/metodos-raices";
 
-export function useCalculoRaiz<Fila>(ejemplo: string, conDerivada = false) {
+type Preparacion = ReturnType<typeof prepararFuncion>;
+
+/**
+ * Estado común de las calculadoras de raíces: texto de la ecuación, función validada,
+ * campos numéricos (como texto) y último resultado. Cualquier edición descarta el resultado.
+ */
+export function useCalculoRaiz<Fila, Campo extends string>(
+  ejemplo: string,
+  camposIniciales: Record<Campo, string>,
+  conDerivada = false,
+) {
   const [ecuacion, setEcuacion] = useState(ejemplo);
-  const [preparacion, setPreparacion] = useState<ReturnType<typeof prepararFuncion> | null>(null);
+  const [campos, setCampos] = useState(camposIniciales);
+  const [preparacion, setPreparacion] = useState<Preparacion | null>(null);
   const [resultado, setResultado] = useState<ResultadoRaiz<Fila> | null>(null);
 
-  function cambiarEcuacion(texto: string) {
+  const cambiarEcuacion = useCallback((texto: string) => {
     setEcuacion(texto);
     setPreparacion(null);
     setResultado(null);
-  }
+  }, []);
 
-  function validarFuncion() {
+  const validarFuncion = useCallback(() => {
     setResultado(null);
     setPreparacion(prepararFuncion(ecuacion, conDerivada));
-  }
+  }, [ecuacion, conDerivada]);
+
+  const cambiarCampo = useCallback((campo: Campo, valor: string) => {
+    setCampos((previos) => ({ ...previos, [campo]: valor }));
+    setResultado(null);
+  }, []);
 
   return {
     ecuacion,
+    campos,
     funcion: preparacion?.funcion,
     error: preparacion?.error ?? "",
     resultado,
     setResultado,
     cambiarEcuacion,
+    cambiarCampo,
     validarFuncion,
   };
 }

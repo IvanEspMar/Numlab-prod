@@ -1,143 +1,49 @@
+import { useCallback, useState } from "react";
+import { MathJax } from "better-react-mathjax";
 import { EncabezadoCalculadora } from "@/components/encabezado-calculadora/encabezado-calculadora";
+import { EditorSistema } from "@/components/editor-matriz/editor-matriz";
+import { useMatrizEditable, type SistemaNumerico } from "@/hooks/use-matriz-editable";
 import { solveEigen, type EigenResult } from "./metodos-potencia";
 import { ResultadosPotencia } from "./resultados-potencia";
-import { CeldaMatriz, EditorMatriz } from '@/components/editor-matriz/editor-matriz'
-import { parseDecimal } from '@/functions/parse-decimal'
-import { useState } from "react";
-import { MathJax } from "better-react-mathjax";
 import "./calculadora-potencia.scss";
 
 const MIN_SIZE = 2;
 const MAX_SIZE = 8;
-const COEFFICIENTS = [
+const MAX_ITERACIONES = 1000;
+const TOLERANCIA_INICIAL = "0.000001";
+const ITERACIONES_INICIALES = "100";
+const OPCIONES_TAMANO = Array.from({ length: MAX_SIZE - MIN_SIZE + 1 }, (_, i) => i + MIN_SIZE);
+
+const MATRIZ_EJEMPLO = [
   [2, -2, 1],
   [2, -8, 2],
   [1, 2, 2],
 ];
-
-const EXAMPLE_MATRIX = COEFFICIENTS.map(row => row.map(value => String(Math.abs(value))));
-const EXAMPLE_SIGNS = COEFFICIENTS.map(row => row.map<number>(value => value < 0 ? -1 : 1));
-
-function createMatrix(size: number): string[][] {
-  return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => ""),
-  );
-}
-
-function createSigns(size: number): number[][] {
-  return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => 1),
-  );
-}
-
-function createVector(size: number): string[] {
-  return Array.from({ length: size }, () => "");
-}
+const EJEMPLO_POTENCIA: SistemaNumerico = { A: MATRIZ_EJEMPLO, b: [1, 1, 1] };
+const EJEMPLO_INVERSA: SistemaNumerico = { A: MATRIZ_EJEMPLO, b: [3, 1, -1] };
 
 export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) {
-  const exampleVector = inversa ? [3, 1, -1] : [1, 1, 1];
-  const [size, setSize] = useState(COEFFICIENTS.length);
-
-  const [matrix, setMatrix] = useState<string[][]>(EXAMPLE_MATRIX);
-
-  const [signs, setSigns] = useState<number[][]>(EXAMPLE_SIGNS);
-
-  const [vector, setVector] = useState(() => exampleVector.map(value => String(Math.abs(value))));
-
-  const [vectorSigns, setVectorSigns] =
-    useState(() => exampleVector.map<number>(value => value < 0 ? -1 : 1));
-
-  const [tolerance, setTolerance] = useState("0.000001");
-  const [maxIterations, setMaxIterations] = useState("100");
-
+  const [tolerance, setTolerance] = useState(TOLERANCIA_INICIAL);
+  const [maxIterations, setMaxIterations] = useState(ITERACIONES_INICIALES);
   const [result, setResult] = useState<EigenResult | null>(null);
   const [error, setError] = useState("");
 
+  const descartarResultado = useCallback(() => {
+    setResult(null);
+    setError("");
+  }, []);
+
+  const matriz = useMatrizEditable({
+    ejemplo: inversa ? EJEMPLO_INVERSA : EJEMPLO_POTENCIA,
+    minimo: MIN_SIZE,
+    maximo: MAX_SIZE,
+    alCambiar: descartarResultado,
+  });
+
   function loadExample() {
-    setSize(COEFFICIENTS.length);
-    setMatrix(EXAMPLE_MATRIX.map((row) => [...row]));
-    setSigns(EXAMPLE_SIGNS.map((row) => [...row]));
-    setVector(exampleVector.map(value => String(Math.abs(value))));
-    setVectorSigns(exampleVector.map(value => value < 0 ? -1 : 1));
-    setTolerance("0.000001");
-    setMaxIterations("100");
-    setResult(null);
-    setError("");
-  }
-
-  function clearMatrix() {
-    setMatrix(createMatrix(size));
-    setSigns(createSigns(size));
-    setVector(createVector(size));
-    setVectorSigns(Array(size).fill(1));
-    setResult(null);
-    setError("");
-  }
-
-  function resizeMatrix(newSize: number) {
-    setMatrix((previous) =>
-      Array.from({ length: newSize }, (_, i) =>
-        Array.from({ length: newSize }, (_, j) => previous[i]?.[j] ?? ""),
-      ),
-    );
-
-    setSigns((previous) =>
-      Array.from({ length: newSize }, (_, i) =>
-        Array.from({ length: newSize }, (_, j) => previous[i]?.[j] ?? 1),
-      ),
-    );
-
-    setVector((previous) =>
-      Array.from({ length: newSize }, (_, i) => previous[i] ?? ""),
-    );
-
-    setVectorSigns((previous) =>
-      Array.from({ length: newSize }, (_, i) => previous[i] ?? 1),
-    );
-
-    setSize(newSize);
-    setResult(null);
-    setError("");
-  }
-
-  function updateMatrix(row: number, col: number, value: string) {
-    setMatrix((previous) => {
-      const next = previous.map((current) => [...current]);
-      next[row][col] = value;
-      return next;
-    });
-
-    setResult(null);
-  }
-
-  function toggleMatrixSign(row: number, col: number) {
-    setSigns((previous) => {
-      const next = previous.map((current) => [...current]);
-      next[row][col] *= -1;
-      return next;
-    });
-
-    setResult(null);
-  }
-
-  function updateVector(index: number, value: string) {
-    setVector((previous) => {
-      const next = [...previous];
-      next[index] = value;
-      return next;
-    });
-
-    setResult(null);
-  }
-
-  function toggleVectorSign(index: number) {
-    setVectorSigns((previous) => {
-      const next = [...previous];
-      next[index] *= -1;
-      return next;
-    });
-
-    setResult(null);
+    matriz.cargarEjemplo();
+    setTolerance(TOLERANCIA_INICIAL);
+    setMaxIterations(ITERACIONES_INICIALES);
   }
 
   function calculate() {
@@ -152,36 +58,18 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
       return;
     }
 
-    if (
-      !Number.isInteger(parsedIterations) ||
-      parsedIterations < 1 ||
-      parsedIterations > 1000
-    ) {
-      setError("El máximo de iteraciones debe estar entre 1 y 1000.");
+    if (!Number.isInteger(parsedIterations) || parsedIterations < 1 || parsedIterations > MAX_ITERACIONES) {
+      setError(`El máximo de iteraciones debe estar entre 1 y ${MAX_ITERACIONES}.`);
       return;
     }
 
-    const parsedMatrix = matrix.map((row, i) =>
-      row.map((value, j) => {
-        const magnitude = value.trim() === "" ? 0 : parseDecimal(value);
-        return magnitude * signs[i][j];
-      }),
-    );
-
-    const parsedVector = vector.map((value, i) => {
-      const magnitude = value.trim() === "" ? 0 : parseDecimal(value);
-      return magnitude * vectorSigns[i];
-    });
-
-    if (
-      !parsedMatrix.flat().every(Number.isFinite) ||
-      !parsedVector.every(Number.isFinite)
-    ) {
+    const { A, b } = matriz.leer();
+    if (!A.flat().every(Number.isFinite) || !b.every(Number.isFinite)) {
       setError("Verifica que todos los valores sean números válidos.");
       return;
     }
 
-    setResult(solveEigen(parsedMatrix, parsedVector, parsedTolerance, parsedIterations, inversa));
+    setResult(solveEigen(A, b, parsedTolerance, parsedIterations, inversa));
   }
 
   return (
@@ -208,13 +96,10 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
 
             <select
               id="potencia-size"
-              value={size}
-              onChange={(event) => resizeMatrix(Number(event.target.value))}
+              value={matriz.tamano}
+              onChange={(event) => matriz.cambiarTamano(Number(event.target.value))}
             >
-              {Array.from(
-                { length: MAX_SIZE - MIN_SIZE + 1 },
-                (_, i) => i + MIN_SIZE,
-              ).map((value) => (
+              {OPCIONES_TAMANO.map((value) => (
                 <option key={value} value={value}>
                   {value} × {value}
                 </option>
@@ -223,27 +108,10 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
           </div>
         </div>
 
-        <EditorMatriz
-          size={size}
-          vectorLabel="Vector inicial x₀"
-          renderCell={(row, column) => (
-            <CeldaMatriz
-              label={`Coeficiente: fila ${row + 1}, columna ${column + 1}`}
-              value={matrix[row][column]}
-              negative={signs[row][column] < 0}
-              onValueChange={(value) => updateMatrix(row, column, value)}
-              onToggleSign={() => toggleMatrixSign(row, column)}
-            />
-          )}
-          renderVector={(row) => (
-            <CeldaMatriz
-              label={`Componente inicial ${row + 1}`}
-              value={vector[row]}
-              negative={vectorSigns[row] < 0}
-              onValueChange={(value) => updateVector(row, value)}
-              onToggleSign={() => toggleVectorSign(row)}
-            />
-          )}
+        <EditorSistema
+          matriz={matriz}
+          etiquetaVector="Vector inicial x₀"
+          etiquetaComponente="Componente inicial"
         />
 
         <div className="potencia__matrix-note">
@@ -267,7 +135,7 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
               min="0"
               step="any"
               value={tolerance}
-              onChange={(event) => { setTolerance(event.target.value); setResult(null); setError(""); }}
+              onChange={(event) => { setTolerance(event.target.value); descartarResultado(); }}
             />
           </label>
 
@@ -276,10 +144,10 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
             <input
               type="number"
               min="1"
-              max="1000"
+              max={MAX_ITERACIONES}
               step="1"
               value={maxIterations}
-              onChange={(event) => { setMaxIterations(event.target.value); setResult(null); setError(""); }}
+              onChange={(event) => { setMaxIterations(event.target.value); descartarResultado(); }}
             />
           </label>
         </div>
@@ -289,7 +157,7 @@ export function CalculadoraPotencia({ inversa = false }: { inversa?: boolean }) 
         <button type="button" onClick={loadExample}>
           Cargar ejemplo
         </button>
-        <button type="button" onClick={clearMatrix}>
+        <button type="button" onClick={matriz.limpiar}>
           Limpiar
         </button>
         <button

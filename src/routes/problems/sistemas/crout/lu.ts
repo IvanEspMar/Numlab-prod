@@ -1,16 +1,6 @@
-﻿type Matriz = number[][]
+import { crearMatriz, finito, validarSistema, type Matriz } from '../compartido/algebra.ts'
 
-function finito(valor: number): number {
-  if (!Number.isFinite(valor)) {
-    throw new Error('El cálculo excede el rango numérico disponible.')
-  }
-  return valor
-}
-
-function crearMatriz(n: number): Matriz {
-  return Array.from({ length: n }, () => Array<number>(n).fill(0))
-}
-
+/** Resuelve `Ly = Pb` (L con pivotes en la diagonal). */
 function adelante(L: Matriz, b: number[]): number[] {
   const y = Array<number>(L.length).fill(0)
   for (let i = 0; i < L.length; i++) {
@@ -21,6 +11,7 @@ function adelante(L: Matriz, b: number[]): number[] {
   return y
 }
 
+/** Resuelve `Ux = y` (U con diagonal unitaria). */
 function atras(U: Matriz, y: number[]): number[] {
   const x = Array<number>(U.length).fill(0)
   for (let i = U.length - 1; i >= 0; i--) {
@@ -32,13 +23,8 @@ function atras(U: Matriz, y: number[]): number[] {
 }
 
 export function resolverCrout(A: Matriz, b: number[]) {
+  validarSistema(A, b)
   const n = A.length
-  if (n === 0 || b.length !== n || A.some(fila => fila.length !== n)) {
-    throw new Error('Se requiere una matriz cuadrada y un vector de la misma dimensión.')
-  }
-  if (!A.every(fila => fila.every(Number.isFinite)) || !b.every(Number.isFinite)) {
-    throw new Error('Todos los coeficientes y términos independientes deben ser finitos.')
-  }
 
   const L = crearMatriz(n)
   const U = crearMatriz(n)

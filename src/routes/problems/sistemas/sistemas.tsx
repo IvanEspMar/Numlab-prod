@@ -1,11 +1,11 @@
 import { type TarjetaData } from '@/components/tarjeta/tarjeta'
 import TarjetaGrid from '@/components/tarjeta-grid/tarjeta-grid'
 
-import jordan from '@/assets/jordan.png'
-import jacobi from '@/assets/jacobi.png'
-import seidel from '@/assets/seidel.jpg'
-import doolittle from '@/assets/doolittle.png'
-import crout from '@/assets/crout.png'
+import jordan from '@/assets/jordan.webp'
+import jacobi from '@/assets/jacobi.webp'
+import seidel from '@/assets/seidel.webp'
+import doolittle from '@/assets/doolittle.webp'
+import crout from '@/assets/crout.webp'
 
 const metodosSistemas: TarjetaData[] = [
   {

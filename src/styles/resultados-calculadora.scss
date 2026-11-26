@@ -1,0 +1,75 @@
+@use 'controles' as ui;
+@use 'variables' as *;
+
+.resumen-calculadora {
+  @include ui.panel-calculadora;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 36px;
+  margin-top: 20px;
+  border-left: 2px solid $color-red;
+
+  > div { min-width: 0; }
+
+  h3 {
+    margin: 0 0 12px;
+    color: #166c9b;
+    font: 500 1rem / 1.4 $font-mono;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__valor {
+    overflow-x: auto;
+    color: $color-text;
+    font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+    line-height: 1.4;
+
+    mjx-container[display='true'] {
+      margin: 0 !important;
+      text-align: left !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tabla-iteraciones {
+  @include ui.panel-calculadora;
+  margin-top: 20px;
+
+  h2 {
+    margin: 0 0 16px;
+    font: 600 25px / 1.15 $font-display;
+    letter-spacing: -0.04em;
+  }
+
+  &__scroll {
+    overflow-x: auto;
+    &:focus-visible { outline: 2px solid #166c9b; outline-offset: 3px; }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    font: 400 14px / 1.4 $font-mono;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th, td {
+    padding: 11px 14px;
+    border-bottom: 1px solid $color-border;
+    text-align: center;
+  }
+
+  th { background: $color-background; color: #166c9b; font-weight: 600; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  tbody tr:hover { background: #edf5fa; }
+
+  @media (max-width: 460px) {
+    th, td { padding: 8px 10px; }
+  }
+}

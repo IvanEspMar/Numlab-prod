@@ -45,19 +45,22 @@ interface CeldaMatrizProps {
   onToggleSign?: () => void
 }
 
+const FORMATO_CELDA = /^[+−-]?(?:\d*(?:[.,]\d*)?)(?:e[+-]?\d*)?$/i
+const EMPIEZA_NEGATIVO = /^[-−]/
+
 export function CeldaMatriz({ label, value, onValueChange, negative, onToggleSign }: CeldaMatrizProps) {
   const displayedValue = negative ? `-${value}` : value
-  const isNegative = /^[-−]/.test(displayedValue.trimStart())
+  const isNegative = EMPIEZA_NEGATIVO.test(displayedValue.trimStart())
 
   function updateValue(nextValue: string) {
-    if (!/^[+−-]?(?:\d*(?:[.,]\d*)?)(?:e[+-]?\d*)?$/i.test(nextValue)) return
+    if (!FORMATO_CELDA.test(nextValue)) return
 
     if (!onToggleSign) {
       onValueChange(nextValue)
       return
     }
 
-    if (/^[-−]/.test(nextValue) !== Boolean(negative)) onToggleSign()
+    if (EMPIEZA_NEGATIVO.test(nextValue) !== Boolean(negative)) onToggleSign()
     onValueChange(nextValue.replace(/^[-+−]/, ''))
   }
 
@@ -68,7 +71,7 @@ export function CeldaMatriz({ label, value, onValueChange, negative, onToggleSig
     }
 
     const text = value.trim()
-    onValueChange(/^[-−]/.test(text) ? text.slice(1) : `-${text.replace(/^\+/, '')}`)
+    onValueChange(EMPIEZA_NEGATIVO.test(text) ? text.slice(1) : `-${text.replace(/^\+/, '')}`)
   }
 
   return (
@@ -91,5 +94,56 @@ export function CeldaMatriz({ label, value, onValueChange, negative, onToggleSig
         ±
       </button>
     </div>
+  )
+}
+
+/** Subconjunto de `useMatrizEditable` que necesita el editor visual. */
+export interface MatrizEditable {
+  tamano: number
+  celdas: string[][]
+  signos: number[][]
+  vector: string[]
+  signosVector: number[]
+  cambiarCelda: (fila: number, columna: number, valor: string) => void
+  alternarSigno: (fila: number, columna: number) => void
+  cambiarVector: (indice: number, valor: string) => void
+  alternarSignoVector: (indice: number) => void
+}
+
+interface EditorSistemaProps {
+  matriz: MatrizEditable
+  /** Rótulo del vector lateral (por defecto «Vector b»). */
+  etiquetaVector?: string
+  /** Texto accesible de cada componente del vector. */
+  etiquetaComponente?: string
+}
+
+/** Editor completo de `A` y del vector asociado, conectado a `useMatrizEditable`. */
+export function EditorSistema({ matriz, etiquetaVector, etiquetaComponente = 'Término independiente' }: EditorSistemaProps) {
+  const { tamano, celdas, signos, vector, signosVector } = matriz
+
+  return (
+    <EditorMatriz
+      size={tamano}
+      vectorLabel={etiquetaVector}
+      renderCell={(fila, columna) => (
+        <CeldaMatriz
+          label={`Coeficiente: fila ${fila + 1}, columna ${columna + 1}`}
+          value={celdas[fila][columna]}
+          negative={signos[fila][columna] < 0}
+          onValueChange={(valor) => matriz.cambiarCelda(fila, columna, valor)}
+          onToggleSign={() => matriz.alternarSigno(fila, columna)}
+        />
+      )}
+      renderVector={(fila) => (
+        <CeldaMatriz
+          label={`${etiquetaComponente} ${fila + 1}`}
+          value={vector[fila]}
+          negative={signosVector[fila] < 0}
+          onValueChange={(valor) => matriz.cambiarVector(fila, valor)}
+          onToggleSign={() => matriz.alternarSignoVector(fila)}
+        />
+      )}
+    />
   )
 }

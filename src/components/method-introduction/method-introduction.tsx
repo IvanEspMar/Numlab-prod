@@ -16,11 +16,9 @@ export type MethodIntroductionData = {
   calculatorPath: string
 }
 
-type Props = { method: MethodIntroductionData }
-
-export default function MethodIntroduction({ method }: Props) {
+export default function MethodIntroduction({ method }: { method: MethodIntroductionData }) {
   return (
-    <article className="method-introduction" key={method.calculatorPath}>
+    <article className="method-introduction">
       <header className="method-introduction__header">
         <h1>{method.title}<span className="punto">.</span></h1>
         <Link className="method-introduction__action" to={method.calculatorPath}>
@@ -50,7 +48,7 @@ export default function MethodIntroduction({ method }: Props) {
         <section className="method-introduction__history" aria-labelledby="method-history">
           {method.image && (
             <figure className="method-introduction__visual">
-              <img src={method.image} alt={method.imageAlt ?? ''} />
+              <img src={method.image} alt={method.imageAlt ?? ''} decoding="async" />
             </figure>
           )}
           <h2 id="method-history">Historia del método</h2>
@@ -58,7 +56,7 @@ export default function MethodIntroduction({ method }: Props) {
             <p key={paragraph}>{paragraph}</p>
           ))}
           {method.historyReference && (
-            <p><a href={method.historyReference.url}>{method.historyReference.label}</a></p>
+            <p><a href={method.historyReference.url} target="_blank" rel="noopener noreferrer">{method.historyReference.label}</a></p>
           )}
         </section>
       </div>

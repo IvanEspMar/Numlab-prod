@@ -1,14 +1,19 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router'
 import './home.scss'
 
+const INTEGRANTES = [
+  { nombre: 'Huesca Martínez José Arturo', rol: 'Programación e investigación' },
+  { nombre: 'Espinosa Martínez Iván', rol: 'Diseño y programación' },
+  { nombre: 'Martínez González Enrique René', rol: 'Programación e investigación' },
+] as const
+
 function Presentacion() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   return (
     <section className="recuadro presentacion">
       <div className="presentacion-header">
-        <span className="etiqueta">PROYECTO MÉTODOS NUMERICOS</span>
-        
-          <button onClick={() => navigate('/problems')} className='start-button'>MENÚ PRINCIPAL</button>
+        <span className="etiqueta">PROYECTO MÉTODOS NUMÉRICOS</span>
+        <button type="button" onClick={() => navigate('/problems')} className="start-button">MENÚ PRINCIPAL</button>
       </div>
 
       <div className="presentacion-contenido">
@@ -18,7 +23,7 @@ function Presentacion() {
           <h1>
             HERRAMIENTA DE MÉTODOS
             <br />
-            <span className='numericos'>NUMÉRICOS</span><span className="punto">.</span>
+            <span className="numericos">NUMÉRICOS</span><span className="punto">.</span>
           </h1>
 
           <div className="titulo-pie">
@@ -48,41 +53,15 @@ function Presentacion() {
         <aside className="integrantes">
           <span className="etiqueta">INTEGRANTES</span>
 
-          <div className="integrante">
-            <span className="integrante-numero">01</span>
-            <div className="integrante-info">
-              <span className="integrante-nombre">
-                Huesca Martínez José Arturo
-              </span>
-              <span className="integrante-rol">
-                Programación e investigación
-              </span>
+          {INTEGRANTES.map(({ nombre, rol }, i) => (
+            <div className="integrante" key={nombre}>
+              <span className="integrante-numero">{String(i + 1).padStart(2, '0')}</span>
+              <div className="integrante-info">
+                <span className="integrante-nombre">{nombre}</span>
+                <span className="integrante-rol">{rol}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="integrante">
-            <span className="integrante-numero">02</span>
-            <div className="integrante-info">
-              <span className="integrante-nombre">
-                Espinosa Martínez Iván
-              </span>
-              <span className="integrante-rol">
-                Diseño y programación
-              </span>
-            </div>
-          </div>
-
-          <div className="integrante">
-            <span className="integrante-numero">03</span>
-            <div className="integrante-info">
-              <span className="integrante-nombre">
-                Martínez González Enrique René
-              </span>
-              <span className="integrante-rol">
-                Programación e investigación
-              </span>
-            </div>
-          </div>
+          ))}
         </aside>
       </div>
 
@@ -95,23 +74,15 @@ function Presentacion() {
 }
 
 
-
-
-function Home() {
-  return (
-    <>
-      <Presentacion />
-    </>
-  )
+export default function Home() {
+  return <Presentacion />
 }
-
-export default Home
-
 
 function GraficaAnimada() {
   return (
     <svg
       className="grafica-animada"
+      aria-hidden="true"
       viewBox="0 0 1566 763"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

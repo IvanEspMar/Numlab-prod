@@ -6,99 +6,100 @@ import { GraficaMatematica } from "./grafica-matematica";
 import { createSolutionGraph, type GraphData } from "./grafica-modelo";
 import type { EstadoRaiz, ResultadoRaiz } from "../calculo/metodos-raices";
 import "./calculadora-nolineal.scss";
+import "@/styles/resultados-calculadora.scss";
 
 interface CalculadoraNoLinealProps {
-    title: string;
-    introductionPath: string;
-    equationText: string;
-    equationLatex: string | null;
-    validationMessage: string;
-    onEquationChange: (value: string) => void;
-    onValidate: () => void;
-    parameters: ReactNode;
+    titulo: string;
+    rutaIntroduccion: string;
+    ecuacion: string;
+    ecuacionLatex: string | null;
+    mensajeValidacion: string;
+    onCambiarEcuacion: (valor: string) => void;
+    onValidar: () => void;
+    parametros: ReactNode;
     children: ReactNode;
-    inputGraph: GraphData | null;
+    graficaEntrada: GraphData | null;
     resultado: ResultadoRaiz<unknown> | null;
-    graphHint?: string;
+    ayudaGrafica?: string;
 }
 
 export function CalculadoraNoLineal({
-    title,
-    introductionPath,
-    equationText,
-    equationLatex,
-    validationMessage,
-    onEquationChange,
-    onValidate,
-    parameters,
+    titulo,
+    rutaIntroduccion,
+    ecuacion,
+    ecuacionLatex,
+    mensajeValidacion,
+    onCambiarEcuacion,
+    onValidar,
+    parametros,
     children,
-    inputGraph,
+    graficaEntrada,
     resultado,
-    graphHint = "Ingresa valores iniciales donde la función esté definida.",
+    ayudaGrafica = "Ingresa valores iniciales donde la función esté definida.",
 }: CalculadoraNoLinealProps) {
     const equationId = useId();
     const solutionGraph = useMemo(() => {
-        if (!inputGraph || !resultado?.ultima || !esResultadoAceptado(resultado.estado)) return null;
-        return createSolutionGraph(inputGraph, resultado.ultima);
-    }, [inputGraph, resultado]);
+        if (!graficaEntrada || !resultado?.ultima || !esResultadoAceptado(resultado.estado)) return null;
+        return createSolutionGraph(graficaEntrada, resultado.ultima);
+    }, [graficaEntrada, resultado]);
 
     return (
         <section className="calculadora-nolineal">
-            <EncabezadoCalculadora titulo={title} introduccion={introductionPath} />
+            <EncabezadoCalculadora titulo={titulo} introduccion={rutaIntroduccion} />
 
             <div className="calculadora-nolineal__workspace">
                 <div className="calculadora-nolineal__panel">
                     <form className="calculadora-nolineal__equation-input" onSubmit={(event) => {
                         event.preventDefault();
-                        onValidate();
+                        onValidar();
                     }}>
                         <label htmlFor={equationId}>Función de x</label>
                         <div>
                             <input
                                 id={equationId}
                                 type="text"
-                                value={equationText}
-                                onChange={(event) => onEquationChange(event.target.value)}
+                                value={ecuacion}
+                                onChange={(event) => onCambiarEcuacion(event.target.value)}
                                 placeholder="x^2 - 2"
                             />
                             <button type="submit">Validar función</button>
                         </div>
-                        {equationLatex === null && validationMessage && (
-                            <span className="calculadora-nolineal__error" role="status">{validationMessage}</span>
+                        {ecuacionLatex === null && mensajeValidacion && (
+                            <span className="calculadora-nolineal__error" role="status">{mensajeValidacion}</span>
                         )}
                     </form>
-                    {equationLatex !== null && (
-                        <div className="calculadora-nolineal__parameters">{parameters}</div>
+                    {ecuacionLatex !== null && (
+                        <div className="calculadora-nolineal__parameters">{parametros}</div>
                     )}
                 </div>
 
                 <section className="calculadora-nolineal__panel" aria-label="Vista previa de la función">
                     <h2>Vista previa</h2>
-                    {equationLatex === null ? (
+                    {ecuacionLatex === null ? (
                         <p className="calculadora-nolineal__hint">Valida la función para ver su fórmula y habilitar el cálculo.</p>
                     ) : (
                         <div className="calculadora-nolineal__equation-preview">
-                            <MathJax dynamic>{String.raw`\[f(x)=${equationLatex}\]`}</MathJax>
+                            <MathJax dynamic>{String.raw`\[f(x)=${ecuacionLatex}\]`}</MathJax>
                         </div>
                     )}
-                    {equationLatex !== null && (
+                    {ecuacionLatex !== null && (
                         <div className="calculadora-nolineal__input-graph">
                             <h2>Gráfica de entrada</h2>
-                            {inputGraph ? <GraficaMatematica data={inputGraph} /> : (
-                                <p className="calculadora-nolineal__hint">{graphHint}</p>
+                            {graficaEntrada ? <GraficaMatematica data={graficaEntrada} /> : (
+                                <p className="calculadora-nolineal__hint">{ayudaGrafica}</p>
                             )}
                         </div>
                     )}
                 </section>
             </div>
+            {ecuacionLatex !== null && resultado && <ResultadoNoLineal resultado={resultado} />}
             {solutionGraph && (
                 <section className="calculadora-nolineal__panel calculadora-nolineal__solution-graph">
                     <h2>Gráfica del resultado</h2>
                     <GraficaMatematica data={solutionGraph} />
                 </section>
             )}
-            {equationLatex !== null && resultado && <ResultadoNoLineal resultado={resultado} />}
-            {equationLatex !== null && children}
+            {ecuacionLatex !== null && children}
         </section>
     );
 }
@@ -138,10 +139,10 @@ export function TablaIteraciones({ columnas, filas }: {
     if (filas.length === 0) return null;
 
     return (
-        <section className="calculadora-nolineal__iterations">
+        <section className="tabla-iteraciones">
             <h2>Iteraciones</h2>
-            <div className="calculadora-nolineal__table-scroll" tabIndex={0} role="region" aria-label="Tabla de iteraciones">
-                <table className="calculadora-nolineal__iterations-table">
+            <div className="tabla-iteraciones__scroll" tabIndex={0} role="region" aria-label="Tabla de iteraciones">
+                <table>
                     <thead>
                         <tr>
                             {columnas.map((columna) => (
@@ -185,21 +186,21 @@ function ResultadoNoLineal({ resultado }: { resultado: ResultadoRaiz<unknown> })
     const relacion = exacta ? "=" : String.raw`\approx `;
 
     return (
-        <section className="calculadora-nolineal__result" role="status">
+        <section className="resumen-calculadora" role="status">
             <div>
                 <h3>{titulos[estado]}</h3>
                 {mensaje && <p>{mensaje}</p>}
                 {ultima && (
                     <>
                         {!esResultadoAceptado(estado) && <p>Última aproximación evaluada</p>}
-                        <MathJax dynamic>{String.raw`\[x${relacion}${formatear(ultima.x)}\]`}</MathJax>
+                        <MathJax className="resumen-calculadora__valor" dynamic>{String.raw`\[x${relacion}${formatear(ultima.x)}\]`}</MathJax>
                     </>
                 )}
             </div>
             {ultima && (
                 <div>
                     <h3>Comprobación</h3>
-                    <MathJax dynamic>{String.raw`\[|f(x)|${relacion}${formatear(Math.abs(ultima.fx))}\]`}</MathJax>
+                    <MathJax className="resumen-calculadora__valor" dynamic>{String.raw`\[|f(x)|${relacion}${formatear(Math.abs(ultima.fx))}\]`}</MathJax>
                     {ultima.semiancho !== undefined && <p>Semiancho del intervalo {formatearAproximacion(ultima.semiancho)}</p>}
                     {ultima.cambio !== undefined && <p>Cambio entre aproximaciones {formatearAproximacion(ultima.cambio)}</p>}
                 </div>

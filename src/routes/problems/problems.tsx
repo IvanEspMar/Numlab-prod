@@ -1,6 +1,6 @@
 import { type TarjetaData } from '@/components/tarjeta/tarjeta'
 import grafica from '@/assets/nolineal.svg'
-import sistemas from '@/assets/sistemas.jpg'
+import sistemas from '@/assets/sistemas.webp'
 import TarjetaGrid from '@/components/tarjeta-grid/tarjeta-grid'
 import valores from '@/assets/valores.svg'
 

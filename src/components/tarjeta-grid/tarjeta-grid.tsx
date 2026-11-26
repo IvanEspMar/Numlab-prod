@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import Tarjeta, { type TarjetaData } from '@/components/tarjeta/tarjeta'
 import './tarjeta-grid.scss'
 
@@ -36,7 +37,7 @@ function TarjetaGrid({
 
       <div
         className="tarjeta-grid__contenedor"
-        style={{ '--columnas': columnas } as React.CSSProperties}
+        style={{ '--columnas': columnas } as CSSProperties}
       >
         {tarjetas.map((tarjeta) => (
           <Tarjeta

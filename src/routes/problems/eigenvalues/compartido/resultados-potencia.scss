@@ -1,6 +1,19 @@
 @use '../../../../styles/variables' as *;
 
 .resultado-propio {
+  &__resumen {
+    font-size: 1rem;
+    line-height: 1.5;
+
+    h2 { font-size: clamp(1.375rem, 3vw, 1.625rem); }
+    h3 { font-size: 1.125rem; }
+
+    .resultado-propio__metricas {
+      dt { font-size: 0.875rem; }
+      dd { font-size: 1rem; }
+    }
+  }
+
   &__par, &__metricas, &__graficas {
     display: flex;
     flex-wrap: wrap;

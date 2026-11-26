@@ -1,8 +1,5 @@
 @use './styles/variables' as *;
 
-
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
 * {
   box-sizing: border-box;
 }
@@ -13,10 +10,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-.msupsub {
-  font-size: 10px !important;
 }
 
 body {
@@ -32,6 +25,15 @@ body {
 
 .punto {
   color: $color-red;
+}
+
+.cargando {
+  padding: 48px 0;
+  color: $color-muted;
+  font-family: $font-mono;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-align: center;
 }
 
 .aplicacion {

@@ -17,14 +17,11 @@
     margin-top: 28px;
   }
 
-  &__panel,
-  &__result,
-  &__iterations { @include ui.panel-calculadora; }
+  &__panel { @include ui.panel-calculadora; }
 
   &__panel h2,
   &__interval-inputs h3,
-  &__equation-input > label,
-  &__result h3 {
+  &__equation-input > label {
     margin: 0;
     color: #166c9b;
     font: 500 13px / 1.4 $font-mono;
@@ -132,64 +129,13 @@
     &:empty { display: none; }
   }
 
-  &__result {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px 36px;
-    margin-top: 20px;
-    border-left: 2px solid $color-red;
-
-    > div { min-width: 0; overflow-x: auto; }
-    h3 { margin-bottom: 12px; }
-    mjx-container[display='true'] {
-      margin: 0 !important;
-      text-align: left !important;
-    }
-  }
-
-  &__iterations {
-    margin-top: 20px;
-
-    h2 {
-      margin: 0 0 16px;
-      font: 600 25px / 1.15 $font-display;
-      letter-spacing: -0.04em;
-    }
-  }
-
-  &__table-scroll {
-    overflow-x: auto;
-    &:focus-visible { outline: 2px solid #166c9b; outline-offset: 3px; }
-  }
-
-  &__iterations-table {
-    width: 100%;
-    border-collapse: collapse;
-    white-space: nowrap;
-    font: 400 14px / 1.4 $font-mono;
-    font-variant-numeric: tabular-nums;
-
-    th, td {
-      padding: 11px 14px;
-      border-bottom: 1px solid $color-border;
-      text-align: center;
-    }
-
-    th { background: $color-background; color: #166c9b; font-weight: 600; }
-    tbody tr:nth-child(even) { background: #f8fafc; }
-    tbody tr:hover { background: #edf5fa; }
-  }
-
   @media (max-width: 750px) {
     margin-top: 28px;
     &__workspace { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 460px) {
-    &__equation-input > div,
-    &__result { grid-template-columns: minmax(0, 1fr); }
+    &__equation-input > div { grid-template-columns: minmax(0, 1fr); }
     &__equation-input button { justify-self: start; }
-    &__iterations-table th,
-    &__iterations-table td { padding: 8px 10px; }
   }
 }

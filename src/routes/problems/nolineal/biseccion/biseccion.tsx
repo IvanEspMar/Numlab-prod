@@ -1,6 +1,6 @@
 import { parseDecimal } from "@/functions/parse-decimal";
 import { MathJax } from "better-react-mathjax";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { CalculadoraNoLineal, EntradaDecimal, TablaIteraciones } from "../compartido/calculadora-nolineal";
 import { ejemplosRaices } from "../calculo/ejemplos-raices";
 import { formatearDecimal } from "../compartido/formato-decimal";
@@ -10,22 +10,21 @@ import { resolverBiseccion, type FilaBiseccion } from "../calculo/metodos-raices
 import { useCalculoRaiz } from "../compartido/use-calculo-raiz";
 
 const ejemplo = ejemplosRaices.biseccion;
+const COLUMNAS = ["k", "a", "c", "b", "f(a)", "f(c)", "f(b)", "(b-a)/2"];
 
 export default function Biseccion() {
-    const [aInput, setAInput] = useState(ejemplo.a);
-    const [bInput, setBInput] = useState(ejemplo.b);
     const {
-        ecuacion, funcion, error, resultado, setResultado, cambiarEcuacion, validarFuncion,
-    } = useCalculoRaiz<FilaBiseccion>(ejemplo.funcion);
+        ecuacion, campos, funcion, error, resultado, setResultado, cambiarEcuacion, cambiarCampo, validarFuncion,
+    } = useCalculoRaiz<FilaBiseccion, "a" | "b">(ejemplo.funcion, { a: ejemplo.a, b: ejemplo.b });
 
-    const a = parseDecimal(aInput);
-    const b = parseDecimal(bInput);
+    const a = parseDecimal(campos.a);
+    const b = parseDecimal(campos.b);
     const inputGraph = useMemo(
         () => funcion ? createInputGraph(funcion.evaluar, { method: "biseccion", a, b }) : null,
         [funcion, a, b],
     );
-    const fa = funcion ? evaluarReal(funcion.evaluar, a) : null;
-    const fb = funcion ? evaluarReal(funcion.evaluar, b) : null;
+    const fa = useMemo(() => funcion ? evaluarReal(funcion.evaluar, a) : null, [funcion, a]);
+    const fb = useMemo(() => funcion ? evaluarReal(funcion.evaluar, b) : null, [funcion, b]);
 
     function calcular() {
         if (funcion) {
@@ -35,30 +34,24 @@ export default function Biseccion() {
 
     return (
         <CalculadoraNoLineal
-            title="MÉTODO DE BISECCIÓN"
-            introductionPath="/nolineal/biseccion"
-            equationText={ecuacion}
-            equationLatex={funcion?.latex ?? null}
-            validationMessage={error}
-            onEquationChange={cambiarEcuacion}
-            onValidate={validarFuncion}
-            inputGraph={inputGraph}
+            titulo="MÉTODO DE BISECCIÓN"
+            rutaIntroduccion="/nolineal/biseccion"
+            ecuacion={ecuacion}
+            ecuacionLatex={funcion?.latex ?? null}
+            mensajeValidacion={error}
+            onCambiarEcuacion={cambiarEcuacion}
+            onValidar={validarFuncion}
+            graficaEntrada={inputGraph}
             resultado={resultado}
-            graphHint="Ingresa un intervalo válido con a menor que b."
-            parameters={(
+            ayudaGrafica="Ingresa un intervalo válido con a menor que b."
+            parametros={(
                 <>
                     <div className="calculadora-nolineal__interval-inputs">
                         <h3>Intervalo inicial</h3>
                         <label htmlFor="interval-a">a:</label>
-                        <EntradaDecimal id="interval-a" value={aInput} onValueChange={(value) => {
-                            setAInput(value);
-                            setResultado(null);
-                        }} />
+                        <EntradaDecimal id="interval-a" value={campos.a} onValueChange={(valor) => cambiarCampo("a", valor)} />
                         <label htmlFor="interval-b">b:</label>
-                        <EntradaDecimal id="interval-b" value={bInput} onValueChange={(value) => {
-                            setBInput(value);
-                            setResultado(null);
-                        }} />
+                        <EntradaDecimal id="interval-b" value={campos.b} onValueChange={(valor) => cambiarCampo("b", valor)} />
                     </div>
 
                     <div className="calculadora-nolineal__interval-values">
@@ -73,7 +66,7 @@ export default function Biseccion() {
             )}
         >
             {resultado && <TablaIteraciones
-                columnas={["k", "a", "c", "b", "f(a)", "f(c)", "f(b)", "(b-a)/2"]}
+                columnas={COLUMNAS}
                 filas={resultado.filas.map(({ a, b, c, fa, fb, fc, semiancho }, i) =>
                     [i + 1, a, c, b, fa, fc, fb, semiancho],
                 )}

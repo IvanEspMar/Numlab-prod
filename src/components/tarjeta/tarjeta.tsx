@@ -2,6 +2,18 @@
 import { Link } from 'react-router'
 import './tarjeta.scss'
 
+export type TarjetaData = {
+  numero: string
+  categoria: string
+  titulo: string
+  imagen?: string
+  textoAlternativo?: string
+  formula?: string
+  descripcion: string
+  pie: string
+  ruta: string
+}
+
 function Tarjeta({ tarjeta }: { tarjeta: TarjetaData }) {
   return (
     <Link className="tarjeta" to={tarjeta.ruta} aria-label={`Conocer ${tarjeta.titulo}`}>
@@ -17,6 +29,7 @@ function Tarjeta({ tarjeta }: { tarjeta: TarjetaData }) {
           <img
             src={tarjeta.imagen}
             alt={tarjeta.textoAlternativo ?? ''}
+            decoding="async"
           />
         )}
 
@@ -36,18 +49,6 @@ function Tarjeta({ tarjeta }: { tarjeta: TarjetaData }) {
       </footer>
     </Link>
   )
-}
-
-export type TarjetaData = {
-  numero: string
-  categoria: string
-  titulo: string
-  imagen?: string
-  textoAlternativo?: string
-  formula?: string
-  descripcion: string
-  pie: string
-  ruta: string
 }
 
 export default Tarjeta

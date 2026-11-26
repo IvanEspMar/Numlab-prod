@@ -1,7 +1,7 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import test from 'node:test'
 import { resolverCrout } from './lu.ts'
-import { adelante, atras, doli } from '../doolittle/lu.ts'
+import { factorizarDoolittle, resolverDoolittle, sustitucionAdelante, sustitucionAtras } from '../doolittle/lu.ts'
 
 const A = [[2, 4, 2], [4, 10, 6], [2, 6, 9]]
 
@@ -104,11 +104,21 @@ test('Crout rechaza entradas inválidas y operaciones fuera del rango finito', (
 })
 
 test('Doolittle conserva la diagonal unitaria de L y resuelve el sistema', () => {
-  const { L, U } = doli(A)
+  const { L, U } = factorizarDoolittle(A)
   assert.deepEqual(L, [[1, 0, 0], [2, 1, 0], [1, 1, 1]])
   assert.deepEqual(U, [[2, 4, 2], [0, 2, 2], [0, 0, 5]])
   const b = [16, 38, 41]
-  const x = atras(U, adelante(L, b))
+  const x = sustitucionAtras(U, sustitucionAdelante(L, b))
   compararVectores(x, [5.8, -0.8, 3.8])
   compararVectores(multiplicarVector(A, x), b)
+})
+
+test('Doolittle informa el pivote nulo con su posición y rechaza entradas inválidas', () => {
+  assert.throws(() => resolverDoolittle([[0, 1], [1, 1]], [1, 2]), /pivote u11 es cero/)
+  assert.throws(() => resolverDoolittle([[1, 1], [1, 1]], [1, 2]), /pivote u22/)
+  assert.throws(() => resolverDoolittle([[1, 2]], [1]), /dimensión/)
+  assert.throws(() => resolverDoolittle([[NaN]], [1]), /finitos/)
+  const { x, y } = resolverDoolittle(A, [16, 38, 41])
+  compararVectores(x, [5.8, -0.8, 3.8])
+  assert.equal(y.length, 3)
 })

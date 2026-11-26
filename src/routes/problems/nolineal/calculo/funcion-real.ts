@@ -1,4 +1,4 @@
-﻿import { derivative, parse, type EvalFunction, type MathNode } from "mathjs";
+import { derivative, parse, type EvalFunction, type MathNode } from "mathjs";
 
 export type FuncionReal = (x: number) => unknown;
 

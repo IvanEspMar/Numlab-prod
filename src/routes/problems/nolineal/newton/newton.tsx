@@ -1,5 +1,5 @@
 import { parseDecimal } from "@/functions/parse-decimal";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { CalculadoraNoLineal, EntradaDecimal, TablaIteraciones } from "../compartido/calculadora-nolineal";
 import { ejemplosRaices } from "../calculo/ejemplos-raices";
 import { createInputGraph } from "../compartido/grafica-modelo";
@@ -7,14 +7,14 @@ import { resolverNewton, type FilaNewton } from "../calculo/metodos-raices";
 import { useCalculoRaiz } from "../compartido/use-calculo-raiz";
 
 const ejemplo = ejemplosRaices.newton;
+const COLUMNAS = ["k", "x_k", "f(x_k)", "f'(x_k)", "x_{k+1}"];
 
 export default function Newton() {
-    const [valorInicial, setValorInicial] = useState(ejemplo.x);
     const {
-        ecuacion, funcion, error, resultado, setResultado, cambiarEcuacion, validarFuncion,
-    } = useCalculoRaiz<FilaNewton>(ejemplo.funcion, true);
+        ecuacion, campos, funcion, error, resultado, setResultado, cambiarEcuacion, cambiarCampo, validarFuncion,
+    } = useCalculoRaiz<FilaNewton, "x">(ejemplo.funcion, { x: ejemplo.x }, true);
 
-    const x = parseDecimal(valorInicial);
+    const x = parseDecimal(campos.x);
     const inputGraph = useMemo(() => funcion?.pendiente ? createInputGraph(funcion.evaluar, {
         method: "newton", x, derivative: funcion.pendiente,
     }) : null, [funcion, x]);
@@ -27,24 +27,21 @@ export default function Newton() {
 
     return (
         <CalculadoraNoLineal
-            title="MÉTODO DE NEWTON-RAPHSON"
-            introductionPath="/nolineal/newton"
-            equationText={ecuacion}
-            equationLatex={funcion?.latex ?? null}
-            validationMessage={error}
-            onEquationChange={cambiarEcuacion}
-            onValidate={validarFuncion}
-            inputGraph={inputGraph}
+            titulo="MÉTODO DE NEWTON-RAPHSON"
+            rutaIntroduccion="/nolineal/newton"
+            ecuacion={ecuacion}
+            ecuacionLatex={funcion?.latex ?? null}
+            mensajeValidacion={error}
+            onCambiarEcuacion={cambiarEcuacion}
+            onValidar={validarFuncion}
+            graficaEntrada={inputGraph}
             resultado={resultado}
-            parameters={(
+            parametros={(
                 <>
                     <div className="calculadora-nolineal__interval-inputs">
                         <h3>Valor inicial</h3>
                         <label htmlFor="newton-initial-value">x₀:</label>
-                        <EntradaDecimal id="newton-initial-value" value={valorInicial} onValueChange={(value) => {
-                            setValorInicial(value);
-                            setResultado(null);
-                        }} />
+                        <EntradaDecimal id="newton-initial-value" value={campos.x} onValueChange={(valor) => cambiarCampo("x", valor)} />
                     </div>
 
                     <div className="calculadora-nolineal__calculation-controls">
@@ -54,7 +51,7 @@ export default function Newton() {
             )}
         >
             {resultado && <TablaIteraciones
-                columnas={["k", "x_k", "f(x_k)", "f'(x_k)", "x_{k+1}"]}
+                columnas={COLUMNAS}
                 filas={resultado.filas.map(({ x, fx, pendiente, siguiente }, i) =>
                     [i, x, fx, pendiente, siguiente],
                 )}
