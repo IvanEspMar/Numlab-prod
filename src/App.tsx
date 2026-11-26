@@ -1,5 +1,4 @@
 import './App.scss'
-
 import { HashRouter, Routes, Route, useLocation } from 'react-router'
 
 import Home from './routes/home'
@@ -33,7 +32,7 @@ function AppContent() {
   return (
     <main className="aplicacion">
 
-      <Header />
+      <Header /> 
 
       {location.pathname !== "/" && <Breadcrumbs />}
 
